@@ -3,31 +3,34 @@
     import { Button, Spinner } from "deskblocks";
     import { APP, DB, initApp } from "../lib/util";
 
+    let App: APP | {} = {};
+    setContext("App", App);
+
     let isLoading = true;
     let note: string;
     let isEditing = false;
+    let firstName: string;
+    let lastName: string;
     let agentId: string;
-    let subject: string;
-    let ticketId: string;
-    let ticketNumber: string;
+    let contactId: string;
+    let module = "contact";
     let textarea: HTMLTextAreaElement;
 
     onMount(async () => {
-        await initApp();
+        App = await initApp();
         getNote();
-        $APP?.instance.on("ticket_Shift", getNote);
     });
 
     async function getNote() {
-        let ticketData = await ZOHODESK.get("ticket");
-        subject = ticketData.ticket.subject;
-        ticketId = ticketData.ticket.id;
-        ticketNumber = ticketData.ticket.number;
+        let contactData = await ZOHODESK.get("contact");
+        firstName = contactData.contact.firstName;
+        lastName = contactData.contact.lastName;
+        contactId = contactData.contact.id;
 
         let userData = await ZOHODESK.get("user");
         agentId = userData.user.id;
 
-        let key = `${ticketId}_${agentId}`;
+        let key = `${contactId}_${agentId}`;
         await DB.get({ key }).then((data) => {
             let notesData = data?.["database.get"]?.["data"];
             if (notesData && notesData.length > 0) {
@@ -42,34 +45,34 @@
     }
 
     function saveNotes() {
-        let key = `${ticketId}_${agentId}`;
+        let key = `${contactId}_${agentId}`;
         let queriableValue = agentId;
-        let value = { note, title: subject, id: ticketId, module: "ticket", ticketNumber };
+        let fullName = `${firstName ? firstName : ""} ${lastName ? lastName : ""}`.trim();
+        let value = { note, title: fullName, id: contactId, module };
+
+        console.log({ value });
 
         DB.set({ key, value, queriableValue })
             .then(() => {
                 isEditing = false;
                 ZOHODESK.notify({ icon: "success", title: "Notes saved", content: "The notes have been saved successfully." });
                 if (textarea) textarea.blur();
-                refreshBottomBand();
             })
             .catch((error) => {
                 ZOHODESK.notify({ icon: "failure", title: "Error", content: error.message });
             });
-    }
 
-    function refreshBottomBand() {
         $APP?.instance.getWidgets().then((widgets) => {
             let bottomBandWidget = widgets.find((widget) => widget.location === "desk.bottomband");
             if (!bottomBandWidget) return;
 
-            let bottomWidgetInstance = $APP.instance.getWidgetInstance(bottomBandWidget.widgetID);
+            let bottomWidgetInstance = $APP.instance.getWidgetInstance(bottomBandWidget.id);
             bottomWidgetInstance.emit("REFETCH", {});
         });
     }
 
     function deleteNote() {
-        DB.delete({ key: `${ticketId}_${agentId}` })
+        DB.delete({ key: `${contactId}_${agentId}` })
             .then(() => {
                 note = "";
                 ZOHODESK.notify({ icon: "success", title: "Note deleted", content: "The note has been deleted successfully." });

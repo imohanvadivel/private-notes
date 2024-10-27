@@ -3,80 +3,70 @@
     import { Button, Spinner } from "deskblocks";
     import { APP, DB, initApp } from "../lib/util";
 
+    let App: APP | {} = {};
+    setContext("App", App);
+
     let isLoading = true;
     let note: string;
     let isEditing = false;
     let agentId: string;
-    let subject: string;
-    let ticketId: string;
-    let ticketNumber: string;
+    let name: string;
+    let accountId: string;
+    let module = "account";
     let textarea: HTMLTextAreaElement;
 
     onMount(async () => {
-        await initApp();
+        App = await initApp();
         getNote();
-        $APP?.instance.on("ticket_Shift", getNote);
     });
 
     async function getNote() {
-        let ticketData = await ZOHODESK.get("ticket");
-        subject = ticketData.ticket.subject;
-        ticketId = ticketData.ticket.id;
-        ticketNumber = ticketData.ticket.number;
+        let accountData = await ZOHODESK.get("account");
+        name = accountData.account.name;
+        accountId = accountData.account.id;
 
         let userData = await ZOHODESK.get("user");
         agentId = userData.user.id;
 
-        let key = `${ticketId}_${agentId}`;
+        let key = `${accountId}_${agentId}`;
+
         await DB.get({ key }).then((data) => {
             let notesData = data?.["database.get"]?.["data"];
+
             if (notesData && notesData.length > 0) {
                 note = notesData[0].value.note;
             } else {
                 note = "";
             }
         });
+
         if (textarea) textarea.blur();
         isEditing = false;
         isLoading = false;
     }
 
     function saveNotes() {
-        let key = `${ticketId}_${agentId}`;
+        let key = `${accountId}_${agentId}`;
         let queriableValue = agentId;
-        let value = { note, title: subject, id: ticketId, module: "ticket", ticketNumber };
+        let value = { note, title: name, id: accountId, module };
 
         DB.set({ key, value, queriableValue })
             .then(() => {
                 isEditing = false;
                 ZOHODESK.notify({ icon: "success", title: "Notes saved", content: "The notes have been saved successfully." });
                 if (textarea) textarea.blur();
-                refreshBottomBand();
             })
             .catch((error) => {
                 ZOHODESK.notify({ icon: "failure", title: "Error", content: error.message });
             });
-    }
 
-    function refreshBottomBand() {
         $APP?.instance.getWidgets().then((widgets) => {
             let bottomBandWidget = widgets.find((widget) => widget.location === "desk.bottomband");
             if (!bottomBandWidget) return;
 
-            let bottomWidgetInstance = $APP.instance.getWidgetInstance(bottomBandWidget.widgetID);
+            let bottomWidgetInstance = $APP.instance.getWidgetInstance(bottomBandWidget.id);
             bottomWidgetInstance.emit("REFETCH", {});
         });
-    }
-
-    function deleteNote() {
-        DB.delete({ key: `${ticketId}_${agentId}` })
-            .then(() => {
-                note = "";
-                ZOHODESK.notify({ icon: "success", title: "Note deleted", content: "The note has been deleted successfully." });
-            })
-            .catch((error) => {
-                ZOHODESK.notify({ icon: "failure", title: "Error", content: error.message });
-            });
     }
 </script>
 
@@ -97,14 +87,10 @@
         />
     {/if}
 
-    {#if note && note.length > 0}
+    {#if isEditing}
         <footer>
-            {#if isEditing}
-                <Button on:click={saveNotes}>Save</Button>
-                <Button on:click={getNote} variant="tertiary">Cancel</Button>
-            {:else}
-                <Button on:click={deleteNote} variant="danger-secondary">Delete</Button>
-            {/if}
+            <Button on:click={saveNotes}>Save</Button>
+            <Button on:click={getNote} variant="tertiary">Cancel</Button>
         </footer>
     {/if}
 </main>

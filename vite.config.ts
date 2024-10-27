@@ -18,6 +18,8 @@ export default defineConfig({
             input: {
                 main: "widget1.html",
                 widget2: "widget2.html",
+                widget3: "widget3.html",
+                widget4: "widget4.html",
             },
         },
     },

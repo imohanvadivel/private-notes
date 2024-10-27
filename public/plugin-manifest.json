@@ -3,22 +3,36 @@
     "en"
   ],
   "service": "DESK",
-  "storage": false,
+  "storage": true,
   "type": "personal",
   "whiteListedDomains": [],
   "modules": {
     "widgets": [
       {
-        "location": "desk.ticket.detail.subtab",
+        "location": "desk.ticket.detail.rightpanel",
         "url": "/widget1.html",
-        "name": "Test Extension",
+        "name": "Personal Notes",
         "logo": "/assets/logo.png",
         "icon": "/assets/logo.png"
       },
       {
-        "location": "desk.extension.preference",
+        "location": "desk.contact.detail.rightpanel",
+        "url": "/widget3.html",
+        "name": "Personal Notes",
+        "logo": "/assets/logo.png",
+        "icon": "/assets/logo.png"
+      },
+      {
+        "location": "desk.account.detail.rightpanel",
+        "url": "/widget4.html",
+        "name": "Personal Notes",
+        "logo": "/assets/logo.png",
+        "icon": "/assets/logo.png"
+      },
+      {
+        "location": "desk.bottomband",
         "url": "/widget2.html",
-        "name": "Preference",
+        "name": "Personal Notes",
         "logo": "/assets/logo.png",
         "icon": "/assets/logo.png"
       }
