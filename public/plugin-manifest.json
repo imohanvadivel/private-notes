@@ -3,22 +3,22 @@
     "en"
   ],
   "service": "DESK",
-  "storage": false,
+  "storage": true,
   "type": "personal",
   "whiteListedDomains": [],
   "modules": {
     "widgets": [
       {
-        "location": "desk.ticket.detail.subtab",
+        "location": "desk.ticket.detail.rightpanel",
         "url": "/widget1.html",
-        "name": "Test Extension",
+        "name": "Private Note",
         "logo": "/assets/logo.png",
         "icon": "/assets/logo.png"
       },
       {
-        "location": "desk.extension.preference",
+        "location": "desk.bottomband",
         "url": "/widget2.html",
-        "name": "Preference",
+        "name": "Notes List",
         "logo": "/assets/logo.png",
         "icon": "/assets/logo.png"
       }
