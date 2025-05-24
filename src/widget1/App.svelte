@@ -48,6 +48,12 @@
         let queriableValue = agentId;
         let value = { note, title: subject, id: ticketId, module: "ticket", ticketNumber };
 
+        const byteCount = new TextEncoder().encode(note).length;
+        if (byteCount > 5 * 1024) {
+            ZOHODESK.notify({ icon: "failure", title: "Error", content: "The note is too large and exceeds the 5KB size limit." });
+            return;
+        }
+
         DB.set({ key, value, queriableValue })
             .then(() => {
                 isEditing = false;
@@ -76,6 +82,7 @@
         DB.delete({ key: `${ticketId}_${agentId}` })
             .then(() => {
                 note = "";
+                refreshBottomBand();
                 ZOHODESK.notify({ icon: "success", title: "Note deleted", content: "The note has been deleted successfully." });
             })
             .catch((error) => {
